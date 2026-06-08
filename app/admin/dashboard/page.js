@@ -35,6 +35,8 @@ export default function AdminDashboard() {
     type: 'image'
   });
   const [showGalleryForm, setShowGalleryForm] = useState(false);
+  const [uploadingProductImage, setUploadingProductImage] = useState(false);
+  const [uploadingGalleryMedia, setUploadingGalleryMedia] = useState(false);
 
   // Authentication check and data fetch
   useEffect(() => {
@@ -313,9 +315,11 @@ export default function AdminDashboard() {
                         accept="image/*"
                         className="form-input"
                         style={{ padding: '0.4rem', flex: 1 }}
+                        disabled={uploadingProductImage}
                         onChange={async (e) => {
                           const file = e.target.files[0];
                           if (!file) return;
+                          setUploadingProductImage(true);
                           const formData = new FormData();
                           formData.append('file', file);
                           try {
@@ -325,12 +329,14 @@ export default function AdminDashboard() {
                             });
                             const json = await res.json();
                             if (json.success) {
-                              setProductForm({ ...productForm, image: json.url });
+                              setProductForm(prev => ({ ...prev, image: json.url }));
                             } else {
                               alert(json.error || 'Failed to upload image');
                             }
                           } catch (err) {
                             alert('Error uploading file');
+                          } finally {
+                            setUploadingProductImage(false);
                           }
                         }}
                       />
@@ -343,7 +349,7 @@ export default function AdminDashboard() {
                           />
                           <button
                             type="button"
-                            onClick={() => setProductForm({ ...productForm, image: '' })}
+                            onClick={() => setProductForm(prev => ({ ...prev, image: '' }))}
                             style={{
                               position: 'absolute',
                               top: '-8px',
@@ -375,12 +381,13 @@ export default function AdminDashboard() {
                       type="button"
                       onClick={() => { setShowProductForm(false); setIsEditing(false); }}
                       className="btn btn-secondary"
+                      disabled={uploadingProductImage}
                     >
                       Cancel
                     </button>
-                    <button type="submit" className="btn btn-primary">
+                    <button type="submit" className="btn btn-primary" disabled={uploadingProductImage}>
                       <Save size={16} />
-                      <span>{isEditing ? 'Save Changes' : 'Create Product'}</span>
+                      <span>{uploadingProductImage ? 'Uploading...' : (isEditing ? 'Save Changes' : 'Create Product')}</span>
                     </button>
                   </div>
                 </form>
@@ -540,9 +547,11 @@ export default function AdminDashboard() {
                         accept={galleryForm.type === 'image' ? 'image/*' : 'video/*'}
                         className="form-input"
                         style={{ padding: '0.4rem', flex: 1 }}
+                        disabled={uploadingGalleryMedia}
                         onChange={async (e) => {
                           const file = e.target.files[0];
                           if (!file) return;
+                          setUploadingGalleryMedia(true);
                           const formData = new FormData();
                           formData.append('file', file);
                           try {
@@ -552,12 +561,14 @@ export default function AdminDashboard() {
                             });
                             const json = await res.json();
                             if (json.success) {
-                              setGalleryForm({ ...galleryForm, url: json.url });
+                              setGalleryForm(prev => ({ ...prev, url: json.url }));
                             } else {
                               alert(json.error || 'Failed to upload file');
                             }
                           } catch (err) {
                             alert('Error uploading file');
+                          } finally {
+                            setUploadingGalleryMedia(false);
                           }
                         }}
                       />
@@ -578,7 +589,7 @@ export default function AdminDashboard() {
                           )}
                           <button
                             type="button"
-                            onClick={() => setGalleryForm({ ...galleryForm, url: '' })}
+                            onClick={() => setGalleryForm(prev => ({ ...prev, url: '' }))}
                             style={{
                               position: 'absolute',
                               top: '-8px',
@@ -606,12 +617,17 @@ export default function AdminDashboard() {
                   </div>
 
                   <div className={styles.formActions}>
-                    <button type="button" onClick={() => setShowGalleryForm(false)} className="btn btn-secondary">
+                    <button
+                      type="button"
+                      onClick={() => setShowGalleryForm(false)}
+                      className="btn btn-secondary"
+                      disabled={uploadingGalleryMedia}
+                    >
                       Cancel
                     </button>
-                    <button type="submit" className="btn btn-primary" disabled={!galleryForm.url}>
+                    <button type="submit" className="btn btn-primary" disabled={!galleryForm.url || uploadingGalleryMedia}>
                       <Save size={16} />
-                      <span>Save Asset</span>
+                      <span>{uploadingGalleryMedia ? 'Uploading...' : 'Save Asset'}</span>
                     </button>
                   </div>
                 </form>
